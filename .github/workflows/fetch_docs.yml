@@ -21,15 +21,14 @@ jobs:
           echo "Repository that triggered (from payload): ${{ github.event.client_payload.source_repo_full_name }}" # <--- CHANGED THIS LINE
           echo "Current repository (Repo A where workflow is running): ${{ github.repository.full_name }}" # Optional: to differentiate clearly
 
-      # - name: Checkout docs from Repo B
-      #   uses: actions/checkout@v4
-      #   with:
-      #     repository: your-org/repo-b # Replace with Repo B's owner/repo name
-      #     path: ./temp_repo_b # Checkout Repo B into a temporary directory
-      #     token: ${{ secrets.PAT_FOR_REPO_B_CHECKOUT }} # PAT with read access to Repo B
+      - name: Checkout docs from Repo B
+        uses: actions/checkout@v4
+        with:
+          repository: salomob-dynasafe/testing
+          path: ./temp_repo_b # Checkout Repo B into a temporary directory
+          token: ${{ secrets.PAT_TESTING }} # PAT with read access to Repo B
 
-      # - name: Copy docs directory
-      #   run: |
-      #     mkdir -p docs # Create the docs directory if it doesn't exist in Repo A
-      #     cp -R ./temp_repo_b/docs/. ./docs/ # Copy contents of docs from temp_repo_b to Repo A's docs
-      #     rm -rf ./temp_repo_b # Clean up the temporary directory
+      - name: Copy docs directory
+        run: |
+          cd ./temp_repo_b
+          cat *
