@@ -18,8 +18,8 @@ jobs:
           echo "Event type: ${{ github.event.action }}" # This will be 'docs-update'
           echo "Ref from Repo B: ${{ github.event.client_payload.ref }}"
           echo "SHA from Repo B: ${{ github.event.client_payload.sha }}"
-          echo "Actor who triggered: ${{ github.event.sender.login }}"
-          echo "Repository that triggered: ${{ github.event.repository.full_name }}" # This will be Repo B's full name
+          echo "Repository that triggered (from payload): ${{ github.event.client_payload.source_repo_full_name }}" # <--- CHANGED THIS LINE
+          echo "Current repository (Repo A where workflow is running): ${{ github.repository.full_name }}" # Optional: to differentiate clearly
 
       # - name: Checkout docs from Repo B
       #   uses: actions/checkout@v4
