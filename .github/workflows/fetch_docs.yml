@@ -30,6 +30,7 @@ jobs:
 
       - name: Copy docs directory
         run: |
+          set -xe
           cleanup() {
             if [ -d "./temp_repo_b" ]; then
               echo "Cleaning up ./temp_repo_b directory..."
@@ -39,16 +40,23 @@ jobs:
               echo "./temp_repo_b directory not found, no cleanup needed."
             fi
           }
-          REPO=$(echo ${{ github.event.client_payload.source_repo_full_name }} | awk -F'/' '{print $2}')
-          set -xe
+          echo "Starting rsync operation into subdirectory..."
+
+          # Extract just the repository name from the full name (e.g., "owner/repo-name" -> "repo-name")
+          SOURCE_REPO_FULL_NAME="${{ github.event.client_payload.source_repo_full_name }}"
+          SOURCE_REPO_NAME=$(basename "$SOURCE_REPO_FULL_NAME") # Extracts "repo-name"
+
+          TARGET_DOCS_DIR="./docs/$SOURCE_REPO_NAME"
+
+          # Create the target subdirectory if it doesn't exist
+          mkdir -p "$TARGET_DOCS_DIR"
+
+          rsync -av --delete ./temp_repo_b/docs/ "$TARGET_DOCS_DIR/"
           trap cleanup EXIT
-          ls -halt
-          mv ./temp_repo_b/docs ./docs/$REPO
-          ls -hlt ./docs
-          ls -hlt ./docs/$REPO
 
       - name: Commit and Push Docs to Repo A
         run: |
+          set -xe
           # Configure Git user for the commit
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
