@@ -65,3 +65,18 @@ jobs:
           else
             echo "No changes in docs/ directory. Skipping commit and push."
           fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x" # Use a recent Python version
+
+      - name: Install MkDocs and dependencies
+        run: |
+          pip install mkdocs mkdocs-material # Install MkDocs and a common theme
+
+      - name: Deploy Docs with MkDocs
+        run: |
+          mkdocs gh-deploy --force --clean --verbose
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
