@@ -1,0 +1,35 @@
+# .github/workflows/fetch_docs.yml in Repo A
+name: Fetch Docs from Repo B
+
+on:
+  repository_dispatch:
+    types: [docs-update] # Must match the event-type sent from Repo B
+
+jobs:
+  fetch_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repository (Repo A)
+        uses: actions/checkout@v4
+
+      - name: Display Trigger Info from Repo B
+        run: |
+          echo "Workflow triggered by repository_dispatch event."
+          echo "Event type: ${{ github.event.action }}" # This will be 'docs-update'
+          echo "Ref from Repo B: ${{ github.event.client_payload.ref }}"
+          echo "SHA from Repo B: ${{ github.event.client_payload.sha }}"
+          echo "Actor who triggered: ${{ github.event.sender.login }}"
+          echo "Repository that triggered: ${{ github.event.repository.full_name }}" # This will be Repo B's full name
+
+      # - name: Checkout docs from Repo B
+      #   uses: actions/checkout@v4
+      #   with:
+      #     repository: your-org/repo-b # Replace with Repo B's owner/repo name
+      #     path: ./temp_repo_b # Checkout Repo B into a temporary directory
+      #     token: ${{ secrets.PAT_FOR_REPO_B_CHECKOUT }} # PAT with read access to Repo B
+
+      # - name: Copy docs directory
+      #   run: |
+      #     mkdir -p docs # Create the docs directory if it doesn't exist in Repo A
+      #     cp -R ./temp_repo_b/docs/. ./docs/ # Copy contents of docs from temp_repo_b to Repo A's docs
+      #     rm -rf ./temp_repo_b # Clean up the temporary directory
