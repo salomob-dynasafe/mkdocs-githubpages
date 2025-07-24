@@ -18,8 +18,8 @@ jobs:
           echo "Event type: ${{ github.event.action }}" # This will be 'docs-update'
           echo "Ref from Repo B: ${{ github.event.client_payload.ref }}"
           echo "SHA from Repo B: ${{ github.event.client_payload.sha }}"
-          echo "Repository that triggered (from payload): ${{ github.event.client_payload.source_repo_full_name }}" # <--- CHANGED THIS LINE
-          echo "Current repository (Repo A where workflow is running): ${{ github.repository.full_name }}" # Optional: to differentiate clearly
+          echo "Repository that triggered (from payload): ${{ github.event.client_payload.source_repo_full_name }}"
+          echo "Current repository (Repo A where workflow is running): ${{ github.repository.full_name }}"
 
       - name: Checkout docs from Repo B
         uses: actions/checkout@v4
@@ -41,6 +41,7 @@ jobs:
             fi
           }
           echo "Starting rsync operation into subdirectory..."
+          trap cleanup EXIT
 
           # Extract just the repository name from the full name (e.g., "owner/repo-name" -> "repo-name")
           SOURCE_REPO_FULL_NAME="${{ github.event.client_payload.source_repo_full_name }}"
@@ -52,7 +53,6 @@ jobs:
           mkdir -p "$TARGET_DOCS_DIR"
 
           rsync -av --delete ./temp_repo_b/docs/ "$TARGET_DOCS_DIR/"
-          trap cleanup EXIT
 
       - name: Commit and Push Docs to Repo A
         run: |
