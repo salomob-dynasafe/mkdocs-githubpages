@@ -30,8 +30,9 @@ jobs:
 
       - name: Copy docs directory
         run: |
+          REPO=$(echo ${{ github.event.client_payload.source_repo_full_name }} | awk -F'/' '{print $2}')
           set -xe
           ls -halt
-          mv ./temp_repo_b/docs ./docs/${{ github.event.client_payload.source_repo_full_name }}
+          mv ./temp_repo_b/docs ./docs/$REPO
           ls -hlt ./docs
-          ls -hlt ./docs/${{ github.event.client_payload.source_repo_full_name }}
+          ls -hlt ./docs/$REPO
