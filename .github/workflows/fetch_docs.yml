@@ -1,5 +1,5 @@
 # .github/workflows/fetch_docs.yml in Repo A
-name: Fetch Docs from Repo B
+name: Fetch Docs from Repo B aka testing
 
 on:
   repository_dispatch:
@@ -30,5 +30,6 @@ jobs:
 
       - name: Copy docs directory
         run: |
+          ls -halt
           cd ./temp_repo_b
-          cat *
+          ls -halt
