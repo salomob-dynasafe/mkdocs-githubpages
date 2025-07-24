@@ -30,9 +30,38 @@ jobs:
 
       - name: Copy docs directory
         run: |
+          cleanup() {
+            if [ -d "./temp_repo_b" ]; then
+              echo "Cleaning up ./temp_repo_b directory..."
+              rm -rf ./temp_repo_b
+              echo "Cleanup complete."
+            else
+              echo "./temp_repo_b directory not found, no cleanup needed."
+            fi
+          }
           REPO=$(echo ${{ github.event.client_payload.source_repo_full_name }} | awk -F'/' '{print $2}')
           set -xe
+          trap cleanup EXIT
           ls -halt
           mv ./temp_repo_b/docs ./docs/$REPO
           ls -hlt ./docs
           ls -hlt ./docs/$REPO
+
+      - name: Commit and Push Docs to Repo A
+        run: |
+          # Configure Git user for the commit
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add all changes in the 'docs' directory
+          git add docs/
+
+          # Check if there are any changes to commit
+          # 'git status --porcelain' will output nothing if there are no changes
+          if git status --porcelain | grep -q 'docs/'; then
+            echo "Changes detected in docs/, committing and pushing..."
+            git commit -m "Docs update from ${{ github.event.client_payload.source_repo_full_name }} (${{ github.event.client_payload.sha }})"
+            git push origin HEAD # Push to the same branch that triggered the workflow
+          else
+            echo "No changes in docs/ directory. Skipping commit and push."
+          fi
