@@ -30,6 +30,8 @@ jobs:
 
       - name: Copy docs directory
         run: |
+          set -xe
           ls -halt
-          cd ./temp_repo_b
-          ls -halt
+          mv ./temp_repo_b/docs ./docs/${{ github.event.client_payload.source_repo_full_name }}
+          ls -hlt ./docs
+          ls -hlt ./docs/${{ github.event.client_payload.source_repo_full_name }}
