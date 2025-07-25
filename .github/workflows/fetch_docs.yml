@@ -12,7 +12,7 @@ jobs:
       - name: Checkout current repository (Repo A)
         uses: actions/checkout@v4
 
-      - name: Display Trigger Info from Repo B
+      - name: Display Trigger Info from ${{ github.event.client_payload.source_repo_full_name }}
         run: |
           echo "Workflow triggered by repository_dispatch event."
           echo "Event type: ${{ github.event.action }}" # This will be 'docs-update'
@@ -21,23 +21,23 @@ jobs:
           echo "Repository that triggered (from payload): ${{ github.event.client_payload.source_repo_full_name }}"
           echo "Current repository (Repo A where workflow is running): ${{ github.repository.full_name }}"
 
-      - name: Checkout docs from Repo B
+      - name: Checkout docs from ${{ github.event.client_payload.source_repo_full_name }}
         uses: actions/checkout@v4
         with:
-          repository: salomob-dynasafe/testing
-          path: ./temp_repo_b # Checkout Repo B into a temporary directory
+          repository: ${{ github.event.client_payload.source_repo_full_name }}
+          path: ./${{ github.event.client_payload.sha }} # Checkout Repo B into a temporary directory
           token: ${{ secrets.PAT_TESTING }} # PAT with read access to Repo B
 
       - name: Copy docs directory
         run: |
           set -xe
           cleanup() {
-            if [ -d "./temp_repo_b" ]; then
-              echo "Cleaning up ./temp_repo_b directory..."
-              rm -rf ./temp_repo_b
+            if [ -d "./${{ github.event.client_payload.sha }}" ]; then
+              echo "Cleaning up ./${{ github.event.client_payload.sha }} directory..."
+              rm -rf ./${{ github.event.client_payload.sha }}
               echo "Cleanup complete."
             else
-              echo "./temp_repo_b directory not found, no cleanup needed."
+              echo "./${{ github.event.client_payload.sha }} directory not found, no cleanup needed."
             fi
           }
           echo "Starting rsync operation into subdirectory..."
@@ -50,9 +50,25 @@ jobs:
           TARGET_DOCS_DIR="./docs/$SOURCE_REPO_NAME"
 
           # Create the target subdirectory if it doesn't exist
-          mkdir -p "$TARGET_DOCS_DIR"
+          if [ -d "$TARGET_DOCS_DIR" ]; then
+              echo "Directory '$TARGET_DOCS_DIR' already exists."
+          else
+              echo "Directory '$TARGET_DOCS_DIR' does not exist. Attempting to create it..."
+              # Create the target subdirectory if it doesn't exist
+              mkdir -p "$TARGET_DOCS_DIR"
 
-          rsync -av --delete ./temp_repo_b/docs/ "$TARGET_DOCS_DIR/"
+              # Check the exit status of the last command (mkdir).
+              # 0 usually means success, non-zero means an error.
+              if [ $? -eq 0 ]; then
+                  echo "Directory '$TARGET_DOCS_DIR' successfully created."
+              else
+                  echo "Failed to create directory '$TARGET_DOCS_DIR'."
+                  # Exit the script if directory creation fails, as subsequent operations might depend on it.
+                  exit 1
+              fi
+          fi
+
+          rsync -av --delete ./${{ github.event.client_payload.sha }}/docs/ "$TARGET_DOCS_DIR/"
 
       - name: Commit and Push Docs to Repo A
         run: |
